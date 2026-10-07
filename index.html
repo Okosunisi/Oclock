@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>O'clock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fbeef6;
+    --surface: #fffbfd;
+    --surface-2: #f3e2f1;
+    --text: #2e1a35;
+    --text-dim: #8d6f96;
+    --accent: #a855c9;
+    --accent-soft: #f0d7f0;
+    --overdue: #d1477a;
+    --overdue-soft: #fbdfea;
+    --done: #7a5fb0;
+    --done-soft: #e9e0f7;
+    --border: rgba(46,26,53,0.14);
+    --shadow: rgba(140,40,140,0.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #170f2b;
+      --surface: #221539;
+      --surface-2: #2c1c48;
+      --text: #ece6f8;
+      --text-dim: #a699c2;
+      --accent: #b58af8;
+      --accent-soft: #3b2a5c;
+      --overdue: #e589a9;
+      --overdue-soft: #3b2338;
+      --done: #8fd3b8;
+      --done-soft: #1e3a33;
+      --border: rgba(236,230,248,0.13);
+      --shadow: rgba(0,0,0,0.4);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #170f2b;
+    --surface: #221539;
+    --surface-2: #2c1c48;
+    --text: #ece6f8;
+    --text-dim: #a699c2;
+    --accent: #b58af8;
+    --accent-soft: #3b2a5c;
+    --overdue: #e589a9;
+    --overdue-soft: #3b2338;
+    --done: #8fd3b8;
+    --done-soft: #1e3a33;
+    --border: rgba(236,230,248,0.13);
+    --shadow: rgba(0,0,0,0.4);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+    display: flex;
+    justify-content: center;
+  }
+  .app {
+    width: 100%;
+    max-width: 620px;
+  }
+
+  /* ---------- Header / clock ---------- */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    margin-bottom: 30px;
+  }
+  .analog {
+    width: 76px;
+    height: 76px;
+    flex: none;
+  }
+  .analog circle.face { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; }
+  .analog .tick { stroke: var(--text-dim); stroke-width: 1.2; }
+  .analog .tick.major { stroke: var(--accent); stroke-width: 2; }
+  .analog .hand { stroke-linecap: round; }
+  .analog .hour-hand { stroke: var(--text); stroke-width: 3; }
+  .analog .min-hand { stroke: var(--text); stroke-width: 2; }
+  .analog .sec-hand { stroke: var(--accent); stroke-width: 1; }
+  .analog .pin { fill: var(--accent); }
+
+  .head-text { flex: 1; min-width: 0; }
+  .greeting {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 27px;
+    letter-spacing: -0.01em;
+    margin: 0 0 4px;
+  }
+  .digital {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-dim);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .theme-toggle, .sound-toggle {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 7px;
+    padding: 5px 9px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    line-height: 1;
+  }
+  .theme-toggle:hover, .sound-toggle:hover { color: var(--text); border-color: var(--accent); }
+  .head-actions { display: flex; gap: 8px; flex: none; }
+
+  /* ---------- Add form ---------- */
+  .add-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 30px;
+    box-shadow: 0 1px 2px var(--shadow);
+  }
+  .add-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .add-row input[type="text"] {
+    flex: 1 1 200px;
+    min-width: 0;
+  }
+  input, select {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 9px;
+    padding: 10px 12px;
+    font-size: 15px;
+    font-family: inherit;
+  }
+  input[type="time"], input[type="date"] {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color-scheme: light dark;
+  }
+  input:focus, select:focus, button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  .add-meta { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .add-submit {
+    background: var(--accent);
+    color: var(--surface);
+    border: none;
+    border-radius: 9px;
+    padding: 10px 18px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: inherit;
+    margin-top: 10px;
+    width: 100%;
+  }
+  .add-submit:hover { filter: brightness(1.08); }
+  .add-submit:active { filter: brightness(0.95); }
+
+  .notify-hint {
+    font-size: 12.5px;
+    color: var(--text-dim);
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .notify-hint button {
+    background: none;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: 7px;
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  /* ---------- Agenda ---------- */
+  .group { margin-bottom: 26px; }
+  .group-title {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--accent);
+    margin: 0 0 10px 2px;
+  }
+  .task {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .task:last-child { border-bottom: none; }
+  .task-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+    width: 58px;
+    flex: none;
+    text-align: right;
+  }
+  .task.overdue .task-time { color: var(--overdue); font-weight: 700; }
+  .task-check {
+    flex: none;
+    width: 21px;
+    height: 21px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+  .task-check:hover { border-color: var(--accent); }
+  .task.done .task-check { background: var(--done); border-color: var(--done); }
+  .task-check svg { display: none; width: 12px; height: 12px; stroke: var(--surface); }
+  .task.done .task-check svg { display: block; }
+  .task-title {
+    flex: 1;
+    min-width: 0;
+    font-size: 15px;
+    overflow-wrap: break-word;
+  }
+  .task.done .task-title { color: var(--text-dim); text-decoration: line-through; }
+  .task.overdue .task-title { color: var(--overdue); }
+  .task-del {
+    flex: none;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+  }
+  .task-del:hover { color: var(--overdue); background: var(--overdue-soft); }
+
+  .empty {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--text-dim);
+  }
+  .empty .big { font-family: 'Fraunces', serif; font-size: 19px; color: var(--text); margin-bottom: 6px; }
+
+  .toast {
+    position: fixed;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    color: var(--text);
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    box-shadow: 0 6px 20px var(--shadow);
+    opacity: 0;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+    max-width: 90vw;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 420px) {
+    .greeting { font-size: 23px; }
+    .task-time { width: 48px; font-size: 12px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .analog .sec-hand { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <svg class="analog" viewBox="0 0 100 100" id="analogClock" aria-hidden="true">
+      <circle class="face" cx="50" cy="50" r="47"/>
+      <g id="ticks"></g>
+      <line class="hand hour-hand" id="hourHand" x1="50" y1="50" x2="50" y2="28"/>
+      <line class="hand min-hand" id="minHand" x1="50" y1="50" x2="50" y2="18"/>
+      <line class="hand sec-hand" id="secHand" x1="50" y1="50" x2="50" y2="14" style="transition: transform 0.15s cubic-bezier(.4,2.3,.5,1);"/>
+      <circle class="pin" cx="50" cy="50" r="2.6"/>
+    </svg>
+    <div class="head-text">
+      <p class="greeting" id="greeting">Good day</p>
+      <div class="digital"><span id="digitalTime">--:--:--</span> · <span id="digitalDate">-</span></div>
+    </div>
+    <div class="head-actions">
+      <button class="sound-toggle" id="soundToggle" title="Toggle reminder chime">🔔</button>
+      <button class="theme-toggle" id="themeToggle" title="Toggle light/dark">◐</button>
+    </div>
+  </header>
+
+  <div class="add-card">
+    <form id="addForm">
+      <div class="add-row">
+        <input type="text" id="titleInput" placeholder="What needs doing?" autocomplete="off" required maxlength="140">
+      </div>
+      <div class="add-meta">
+        <input type="date" id="dateInput">
+        <input type="time" id="timeInput">
+      </div>
+      <button type="submit" class="add-submit">Add to the agenda</button>
+    </form>
+    <div class="notify-hint" id="notifyHint">
+      <span>Turn on notifications to get nudged when the time comes.</span>
+      <button id="enableNotify" type="button">Enable</button>
+    </div>
+  </div>
+
+  <div id="agenda"></div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- storage ---------- */
+  var STORE_KEY = "oclock_tasks_v1";
+  var THEME_KEY = "oclock_theme_v1";
+  var SOUND_KEY = "oclock_sound_v1";
+
+  function loadTasks(){
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return [];
+      var parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch(e){ return []; }
+  }
+  function saveTasks(tasks){
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(tasks)); } catch(e){}
+  }
+  function loadPref(key, fallback){
+    try {
+      var v = localStorage.getItem(key);
+      return v === null ? fallback : v;
+    } catch(e){ return fallback; }
+  }
+  function savePref(key, val){
+    try { localStorage.setItem(key, val); } catch(e){}
+  }
+
+  var tasks = loadTasks();
+
+  /* ---------- theme ---------- */
+  var root = document.documentElement;
+  var savedTheme = loadPref(THEME_KEY, null);
+  if (savedTheme === "light" || savedTheme === "dark") root.setAttribute("data-theme", savedTheme);
+  document.getElementById("themeToggle").addEventListener("click", function(){
+    var current = root.getAttribute("data-theme");
+    var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    var effectiveDark = current ? current === "dark" : prefersDark;
+    var next = effectiveDark ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    savePref(THEME_KEY, next);
+  });
+
+  /* ---------- sound ---------- */
+  var soundOn = loadPref(SOUND_KEY, "1") !== "0";
+  var soundBtn = document.getElementById("soundToggle");
+  function renderSoundBtn(){ soundBtn.textContent = soundOn ? "🔔" : "🔕"; soundBtn.style.opacity = soundOn ? "1" : "0.55"; }
+  renderSoundBtn();
+  soundBtn.addEventListener("click", function(){
+    soundOn = !soundOn;
+    savePref(SOUND_KEY, soundOn ? "1" : "0");
+    renderSoundBtn();
+  });
+  function chime(){
+    if (!soundOn) return;
+    try {
+      var ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [660, 880].forEach(function(freq, i){
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        gain.gain.value = 0.0001;
+        osc.connect(gain); gain.connect(ctx.destination);
+        var start = ctx.currentTime + i * 0.16;
+        gain.gain.exponentialRampToValueAtTime(0.12, start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.5);
+        osc.start(start); osc.stop(start + 0.55);
+      });
+    } catch(e){}
+  }
+
+  /* ---------- notifications ---------- */
+  var notifyHint = document.getElementById("notifyHint");
+  function refreshNotifyHint(){
+    if (!("Notification" in window) || Notification.permission === "granted") {
+      notifyHint.style.display = "none";
+    } else if (Notification.permission === "denied") {
+      notifyHint.querySelector("span").textContent = "Notifications are blocked in your browser settings.";
+      notifyHint.querySelector("button").style.display = "none";
+    } else {
+      notifyHint.style.display = "flex";
+    }
+  }
+  refreshNotifyHint();
+  document.getElementById("enableNotify").addEventListener("click", function(){
+    if (!("Notification" in window)) return;
+    Notification.requestPermission().then(refreshNotifyHint);
+  });
+
+  /* ---------- toast ---------- */
+  var toastEl = document.getElementById("toast");
+  var toastTimer = null;
+  function showToast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toastEl.classList.remove("show"); }, 4200);
+  }
+
+  /* ---------- clock face ---------- */
+  var ticksGroup = document.getElementById("ticks");
+  for (var i = 0; i < 60; i++){
+    var angle = (i / 60) * 360;
+    var major = i % 5 === 0;
+    var r1 = major ? 40 : 43;
+    var r2 = 46;
+    var rad = (angle - 90) * Math.PI / 180;
+    var x1 = 50 + r1 * Math.cos(rad), y1 = 50 + r1 * Math.sin(rad);
+    var x2 = 50 + r2 * Math.cos(rad), y2 = 50 + r2 * Math.sin(rad);
+    var line = document.createElementNS("http://www.w3.org/2000/svg","line");
+    line.setAttribute("x1", x1); line.setAttribute("y1", y1);
+    line.setAttribute("x2", x2); line.setAttribute("y2", y2);
+    line.setAttribute("class", "tick" + (major ? " major" : ""));
+    ticksGroup.appendChild(line);
+  }
+  var hourHand = document.getElementById("hourHand");
+  var minHand = document.getElementById("minHand");
+  var secHand = document.getElementById("secHand");
+  var digitalTime = document.getElementById("digitalTime");
+  var digitalDate = document.getElementById("digitalDate");
+  var greetingEl = document.getElementById("greeting");
+
+  function pad(n){ return n < 10 ? "0" + n : "" + n; }
+
+  function updateClock(){
+    var now = new Date();
+    var h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+    var hourDeg = ((h % 12) + m/60) * 30;
+    var minDeg = (m + s/60) * 6;
+    var secDeg = s * 6;
+    hourHand.setAttribute("transform", "rotate(" + hourDeg + " 50 50)");
+    minHand.setAttribute("transform", "rotate(" + minDeg + " 50 50)");
+    secHand.setAttribute("transform", "rotate(" + secDeg + " 50 50)");
+    var h12 = h % 12 === 0 ? 12 : h % 12;
+    digitalTime.textContent = pad(h12) + ":" + pad(m) + ":" + pad(s) + (h >= 12 ? " PM" : " AM");
+    digitalDate.textContent = now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+    var greeting = h < 5 ? "Still up?" : h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : h < 21 ? "Good evening" : "Winding down";
+    greetingEl.textContent = greeting;
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  /* ---------- date helpers ---------- */
+  function todayStr(){
+    var d = new Date();
+    return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate());
+  }
+  function tomorrowStr(){
+    var d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate());
+  }
+  function fmtDateLabel(dateStr){
+    var parts = dateStr.split("-").map(Number);
+    var d = new Date(parts[0], parts[1]-1, parts[2]);
+    return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  }
+  function fmtTime(timeStr){
+    var parts = timeStr.split(":").map(Number);
+    var h = parts[0], m = parts[1];
+    var h12 = h % 12 === 0 ? 12 : h % 12;
+    return pad(h12) + ":" + pad(m) + (h >= 12 ? "pm" : "am");
+  }
+  function taskDateTime(t){
+    if (!t.date) return null;
+    var d = new Date(t.date + "T" + (t.time || "23:59") + ":00");
+    return d;
+  }
+
+  /* ---------- add task ---------- */
+  var addForm = document.getElementById("addForm");
+  var titleInput = document.getElementById("titleInput");
+  var dateInput = document.getElementById("dateInput");
+  var timeInput = document.getElementById("timeInput");
+
+  addForm.addEventListener("submit", function(e){
+    e.preventDefault();
+    var title = titleInput.value.trim();
+    if (!title) return;
+    tasks.push({
+      id: Date.now() + "-" + Math.random().toString(36).slice(2,7),
+      title: title,
+      date: dateInput.value || "",
+      time: dateInput.value ? (timeInput.value || "") : "",
+      done: false,
+      notified: false
+    });
+    saveTasks(tasks);
+    titleInput.value = "";
+    dateInput.value = "";
+    timeInput.value = "";
+    titleInput.focus();
+    render();
+  });
+
+  /* ---------- render agenda ---------- */
+  var agendaEl = document.getElementById("agenda");
+
+  function groupTasks(){
+    var today = todayStr(), tomorrow = tomorrowStr();
+    var groups = { today: [], tomorrow: [], later: [], someday: [] };
+    tasks.forEach(function(t){
+      if (!t.date) groups.someday.push(t);
+      else if (t.date === today) groups.today.push(t);
+      else if (t.date === tomorrow) groups.tomorrow.push(t);
+      else if (t.date > today) groups.later.push(t);
+      else groups.today.push(t); // overdue past dates surface under Today
+    });
+    function sorter(a, b){
+      if (!!a.time !== !!b.time) return a.time ? -1 : 1;
+      if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+      if (a.time !== b.time) return a.time < b.time ? -1 : 1;
+      return 0;
+    }
+    groups.today.sort(sorter);
+    groups.tomorrow.sort(sorter);
+    groups.later.sort(sorter);
+    return groups;
+  }
+
+  function isOverdue(t){
+    if (t.done || !t.date) return false;
+    var dt = taskDateTime(t);
+    return dt && dt.getTime() < Date.now();
+  }
+
+  function taskRow(t){
+    var overdue = isOverdue(t);
+    var wrap = document.createElement("div");
+    wrap.className = "task" + (t.done ? " done" : "") + (overdue ? " overdue" : "");
+
+    var timeEl = document.createElement("div");
+    timeEl.className = "task-time";
+    if (t.date && t.time) timeEl.textContent = fmtTime(t.time);
+    else if (t.date) timeEl.textContent = fmtDateLabel(t.date).split(",")[0];
+    else timeEl.textContent = "·";
+    wrap.appendChild(timeEl);
+
+    var check = document.createElement("button");
+    check.className = "task-check";
+    check.type = "button";
+    check.setAttribute("aria-label", t.done ? "Mark not done" : "Mark done");
+    check.innerHTML = '<svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    check.addEventListener("click", function(){
+      t.done = !t.done;
+      saveTasks(tasks);
+      render();
+    });
+    wrap.appendChild(check);
+
+    var titleEl = document.createElement("div");
+    titleEl.className = "task-title";
+    titleEl.textContent = t.title;
+    wrap.appendChild(titleEl);
+
+    var del = document.createElement("button");
+    del.className = "task-del";
+    del.type = "button";
+    del.setAttribute("aria-label", "Delete task");
+    del.textContent = "×";
+    del.addEventListener("click", function(){
+      tasks = tasks.filter(function(x){ return x.id !== t.id; });
+      saveTasks(tasks);
+      render();
+    });
+    wrap.appendChild(del);
+
+    return wrap;
+  }
+
+  function section(label, list){
+    if (!list.length) return null;
+    var g = document.createElement("div");
+    g.className = "group";
+    var h = document.createElement("p");
+    h.className = "group-title";
+    h.textContent = label;
+    g.appendChild(h);
+    list.forEach(function(t){ g.appendChild(taskRow(t)); });
+    return g;
+  }
+
+  function render(){
+    agendaEl.innerHTML = "";
+    if (!tasks.length){
+      var empty = document.createElement("div");
+      empty.className = "empty";
+      empty.innerHTML = '<div class="big">Nothing on the clock yet</div>Add your first task above to start the day.';
+      agendaEl.appendChild(empty);
+      return;
+    }
+    var groups = groupTasks();
+    var todaySec = section("Today", groups.today);
+    var tmrwSec = section("Tomorrow", groups.tomorrow);
+    var laterSec = section("Later", groups.later);
+    var somedaySec = section("No time set", groups.someday);
+    [todaySec, tmrwSec, laterSec, somedaySec].forEach(function(s){ if (s) agendaEl.appendChild(s); });
+  }
+
+  render();
+
+  /* ---------- reminder checker ---------- */
+  function checkReminders(){
+    var now = Date.now();
+    var changed = false;
+    tasks.forEach(function(t){
+      if (t.done || t.notified || !t.date || !t.time) return;
+      var dt = taskDateTime(t);
+      if (!dt) return;
+      var diff = now - dt.getTime();
+      if (diff >= 0 && diff < 60000){
+        t.notified = true;
+        changed = true;
+        chime();
+        showToast("⏰ " + t.title);
+        if ("Notification" in window && Notification.permission === "granted"){
+          try { new Notification("O'clock reminder", { body: t.title }); } catch(e){}
+        }
+      }
+    });
+    if (changed){ saveTasks(tasks); render(); }
+  }
+  setInterval(checkReminders, 15000);
+  checkReminders();
+
+})();
+</script>
+</body>
+</html>
