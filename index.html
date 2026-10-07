@@ -399,10 +399,31 @@
     savePref(SOUND_KEY, soundOn ? "1" : "0");
     renderSoundBtn();
   });
+  var sharedAudioCtx = null;
+  function unlockAudio(){
+    if (sharedAudioCtx) {
+      if (sharedAudioCtx.state === "suspended") { try { sharedAudioCtx.resume(); } catch(e){} }
+      return;
+    }
+    try {
+      sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      // Play a silent blip synchronously within this user gesture to fully unlock iOS Safari.
+      var osc = sharedAudioCtx.createOscillator();
+      var gain = sharedAudioCtx.createGain();
+      gain.gain.value = 0.0001;
+      osc.connect(gain); gain.connect(sharedAudioCtx.destination);
+      osc.start(); osc.stop(sharedAudioCtx.currentTime + 0.01);
+    } catch(e){}
+  }
+  // Unlock on the very first tap/click anywhere, so later programmatic chimes are allowed to play.
+  document.addEventListener("pointerdown", unlockAudio, { once: true });
+
   function chime(){
     if (!soundOn) return;
     try {
-      var ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (!sharedAudioCtx) return; // not unlocked yet (no user interaction took place)
+      if (sharedAudioCtx.state === "suspended") sharedAudioCtx.resume();
+      var ctx = sharedAudioCtx;
       [660, 880].forEach(function(freq, i){
         var osc = ctx.createOscillator();
         var gain = ctx.createGain();
